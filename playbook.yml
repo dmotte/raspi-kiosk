@@ -1,0 +1,89 @@
+#!/usr/bin/env ansible-playbook
+---
+- hosts: all
+
+  tasks:
+    - name: System packages
+      tags: syspkg
+      block:
+        - name: Execute apt update only if the last one is more than 1 hour ago
+          become: yes
+          apt:
+            update_cache: yes
+            cache_valid_time: 3600
+
+        - name: Install Xorg without recommends
+          become: yes
+          apt:
+            name: xorg
+            install_recommends: no
+
+        - name: Install Xorg setuid wrapper
+          # This is needed to start Xorg as a non-root user. You can configure
+          # Xorg wrapper by editing the /etc/X11/Xwrapper.config file
+          become: yes
+          apt:
+            name: xserver-xorg-legacy
+
+        - name: Install Chromium
+          become: yes
+          apt:
+            name: chromium-browser
+            install_recommends: no
+
+    - name: Kiosk user
+      tags: kioskuser
+      block:
+        - name: Create the kioskuser
+          become: yes
+          user:
+            name: kioskuser
+            create_home: yes
+
+        - name: Create the kioskuser's .xinitrc file
+          become: yes
+          copy:
+            src: .xinitrc
+            dest: /home/kioskuser/.xinitrc
+            owner: kioskuser
+            group: kioskuser
+          register: xinitrc_file
+
+        - name: Update the kioskuser's .profile file
+          become: yes
+          blockinfile:
+            path: /home/kioskuser/.profile
+            block: |
+              # If $DISPLAY is not defined and I'm on TTY7
+              if [[ -z $DISPLAY ]] && [[ $XDG_VTNR == 7 ]]; then
+                  # Run startx replacing the current process
+                  exec /usr/bin/startx
+              fi
+          register: profile_file
+
+    - name: Kiosk service
+      tags: kioskservice
+      block:
+        - name: Create the kiosk.service file
+          become: yes
+          copy:
+            src: kiosk.service
+            dest: /lib/systemd/system/kiosk.service
+          register: kiosk_service_file
+
+        - name: Enable the kiosk service
+          become: yes
+          service:
+            name: kiosk
+            enabled: yes
+
+        - name: Issue systemctl daemon-reload to pick up config changes and then restart the kiosk service
+          become: yes
+          service:
+            daemon_reload: yes
+            name: kiosk
+            state: restarted
+          when: >
+            xinitrc_file is changed
+            or profile_file is changed
+            or kiosk_service_file is changed

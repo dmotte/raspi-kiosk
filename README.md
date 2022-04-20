@@ -1,8 +1,8 @@
 # raspi-kiosk
 
-![](icon-128.png)
+![icon](icon-128.png)
 
-Ansible playbook to turn your *Raspberry Pi* into a **web kiosk** (i.e. a device whose sole purpose is to display a web page and consent minimal user interaction). This can sometimes be useful e.g. to display information on a large screen or something.
+Ansible playbook to turn your _Raspberry Pi_ into a **web kiosk** (i.e. a device whose sole purpose is to display a web page and consent minimal user interaction). This can sometimes be useful e.g. to display information on a large screen or something.
 
 :information_source: To make the system as lightweight as possible, only **Xorg** and a full-screen **Chromium** browser instance are started. **No window manager** needed! :slightly_smiling_face:
 

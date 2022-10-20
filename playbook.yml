@@ -4,7 +4,6 @@
 
   tasks:
     - name: System packages
-      tags: syspkg
       block:
         - name: Execute apt update only if the last one is more than 1 hour ago
           become: yes
@@ -32,7 +31,6 @@
             install_recommends: no
 
     - name: Kiosk user
-      tags: kioskuser
       block:
         - name: Create the kioskuser
           become: yes
@@ -62,7 +60,6 @@
           register: profile_file
 
     - name: Kiosk service
-      tags: kioskservice
       block:
         - name: Create the kiosk.service file
           become: yes

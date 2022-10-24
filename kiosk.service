@@ -1,6 +1,9 @@
 [Unit]
 Description=startx on tty7
 
+# Disable unit start rate limiting
+StartLimitIntervalSec=0
+
 [Service]
 Type=simple
 
@@ -14,6 +17,7 @@ StandardError=tty
 TTYPath=/dev/tty7
 
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=getty.target

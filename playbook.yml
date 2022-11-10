@@ -13,13 +13,13 @@
       block:
         - name: Execute apt update only if the last one is more than 1 hour ago
           become: yes
-          apt:
+          ansible.builtin.apt:
             update_cache: yes
             cache_valid_time: 3600
 
         - name: Install Xorg without recommends
           become: yes
-          apt:
+          ansible.builtin.apt:
             name: xorg
             install_recommends: no
 
@@ -27,12 +27,12 @@
           # This is needed to start Xorg as a non-root user. You can configure
           # Xorg wrapper by editing the /etc/X11/Xwrapper.config file
           become: yes
-          apt:
+          ansible.builtin.apt:
             name: xserver-xorg-legacy
 
         - name: Install Chromium
           become: yes
-          apt:
+          ansible.builtin.apt:
             name: chromium-browser
             install_recommends: no
 
@@ -40,13 +40,13 @@
       block:
         - name: Create the kioskuser
           become: yes
-          user:
+          ansible.builtin.user:
             name: kioskuser
             create_home: yes
 
         - name: Create the kioskuser's .xinitrc file
           become: yes
-          copy:
+          ansible.builtin.copy:
             src: .xinitrc
             dest: /home/kioskuser/.xinitrc
             owner: kioskuser
@@ -55,7 +55,7 @@
 
         - name: Update the kioskuser's .profile file
           become: yes
-          blockinfile:
+          ansible.builtin.blockinfile:
             path: /home/kioskuser/.profile
             block: |
               # If $DISPLAY is not defined and I'm on TTY7
@@ -69,20 +69,20 @@
       block:
         - name: Create the kiosk.service file
           become: yes
-          copy:
+          ansible.builtin.copy:
             src: kiosk.service
             dest: /lib/systemd/system/kiosk.service
           register: kiosk_service_file
 
         - name: Enable the kiosk service
           become: yes
-          service:
+          ansible.builtin.service:
             name: kiosk
             enabled: yes
 
         - name: Issue systemctl daemon-reload to pick up config changes and then restart the kiosk service
           become: yes
-          service:
+          ansible.builtin.service:
             daemon_reload: yes
             name: kiosk
             state: restarted

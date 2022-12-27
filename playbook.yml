@@ -83,10 +83,15 @@
             name: kiosk
             enabled: true
 
-        - name: Issue systemctl daemon-reload to pick up config changes and then restart the kiosk service
+        - name: Issue systemctl daemon-reload to pick up config changes
+          become: true
+          ansible.builtin.systemd:
+            daemon_reload: true
+          when: kiosk_service_file is changed
+
+        - name: Restart the kiosk service
           become: true
           ansible.builtin.service:
-            daemon_reload: true
             name: kiosk
             state: restarted
           when: >

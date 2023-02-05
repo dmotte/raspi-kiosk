@@ -73,7 +73,7 @@
           become: true
           ansible.builtin.copy:
             src: kiosk.service
-            dest: /lib/systemd/system/kiosk.service
+            dest: /etc/systemd/system/kiosk.service
             mode: "0644"
           register: kiosk_service_file
 

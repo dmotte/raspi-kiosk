@@ -11,15 +11,14 @@
 
   tasks:
     - name: System packages
+      become: true
       block:
         - name: Execute apt update only if the last one is more than 1 hour ago
-          become: true
           ansible.builtin.apt:
             update_cache: true
             cache_valid_time: 3600
 
         - name: Install Xorg without recommends
-          become: true
           ansible.builtin.apt:
             name: xorg
             install_recommends: false
@@ -27,26 +26,23 @@
         - name: Install Xorg setuid wrapper
           # This is needed to start Xorg as a non-root user. You can configure
           # Xorg wrapper by editing the /etc/X11/Xwrapper.config file
-          become: true
           ansible.builtin.apt:
             name: xserver-xorg-legacy
 
         - name: Install Chromium
-          become: true
           ansible.builtin.apt:
             name: chromium-browser
             install_recommends: false
 
     - name: Kiosk user
+      become: true
       block:
         - name: Create the kioskuser
-          become: true
           ansible.builtin.user:
             name: kioskuser
             create_home: true
 
         - name: Create the kioskuser's .xinitrc file
-          become: true
           ansible.builtin.copy:
             src: .xinitrc
             dest: /home/kioskuser/.xinitrc
@@ -56,7 +52,6 @@
           register: xinitrc_file
 
         - name: Update the kioskuser's .profile file
-          become: true
           ansible.builtin.blockinfile:
             path: /home/kioskuser/.profile
             block: |
@@ -68,31 +63,24 @@
           register: profile_file
 
     - name: Kiosk service
+      become: true
       block:
         - name: Create the kiosk.service file
-          become: true
           ansible.builtin.copy:
             src: kiosk.service
             dest: /etc/systemd/system/kiosk.service
             mode: "0644"
           register: kiosk_service_file
 
-        - name: Enable the kiosk service
-          become: true
-          ansible.builtin.service:
-            name: kiosk
-            enabled: true
-
         - name: Issue systemctl daemon-reload to pick up config changes
-          become: true
           ansible.builtin.systemd:
             daemon_reload: true
           when: kiosk_service_file is changed
 
-        - name: Restart the kiosk service
-          become: true
+        - name: Enable and restart the kiosk service
           ansible.builtin.service:
             name: kiosk
+            enabled: true
             state: restarted
           when: >
             xinitrc_file is changed
